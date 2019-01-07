@@ -114,8 +114,8 @@ endif
 ## Global config
 ##
 
-TOOLS_DIR32 := ./obj-tools32
-TOOLS_DIR64 := ./obj-tools64
+TOOLS_DIR32 := /usr
+TOOLS_DIR64 := /usr
 DST_BASE := ./dist
 DST_DIR := $(DST_BASE)/dist
 DEPLOY_DIR := ./deploy
@@ -138,7 +138,8 @@ STRIP := strip
 WINE32_AUTOCONF :=
 WINE64_AUTOCONF :=
 
-OPTIMIZE_FLAGS := -O2 -march=nocona $(call cc-option,$(CC),-mtune=core-avx2,) -mfpmath=sse
+#OPTIMIZE_FLAGS := -O2 -march=nocona $(call cc-option,$(CC),-mtune=core-avx2,) -mfpmath=sse
+OPTIMIZE_FLAGS :=
 SANITY_FLAGS   := -fwrapv -fno-strict-aliasing
 COMMON_FLAGS   := $(OPTIMIZE_FLAGS) $(SANITY_FLAGS)
 
@@ -188,18 +189,18 @@ WINE := $(SRCDIR)/wine
 WINE_DST32 := ./dist-wine32
 WINE_OBJ32 := ./obj-wine32
 WINE_OBJ64 := ./obj-wine64
-WINEMAKER := $(abspath $(WINE)/tools/winemaker/winemaker)
+WINEMAKER := /usr/bin/winemaker-proton
 
 # Wine outputs that need to exist for other steps (dist)
-WINE_OUT_BIN := $(DST_DIR)/bin/wine64
-WINE_OUT_SERVER := $(DST_DIR)/bin/wineserver
+WINE_OUT_BIN := /usr/bin/wine64-proton
+WINE_OUT_SERVER := /usr/bin/wineserver-proton
 WINE_OUT := $(WINE_OUT_BIN) $(WINE_OUT_SERVER)
 # Tool-only build outputs needed for other projects
-WINEGCC32 := $(TOOLS_DIR32)/bin/winegcc
-WINEBUILD32 := $(TOOLS_DIR32)/bin/winebuild
+WINEGCC32 := $(TOOLS_DIR32)/bin/winegcc-proton
+WINEBUILD32 := $(TOOLS_DIR32)/bin/winebuild-proton
 WINE_BUILDTOOLS32 := $(WINEGCC32) $(WINEBUILD32)
-WINEGCC64 := $(TOOLS_DIR64)/bin/winegcc
-WINEBUILD64 := $(TOOLS_DIR64)/bin/winebuild
+WINEGCC64 := $(TOOLS_DIR64)/bin/winegcc-proton
+WINEBUILD64 := $(TOOLS_DIR64)/bin/winebuild-proton
 WINE_BUILDTOOLS64 := $(WINEGCC64) $(WINEBUILD64)
 
 VRCLIENT := $(SRCDIR)/vrclient_x64
@@ -286,8 +287,8 @@ $(DIST_GECKO_DIR):
 	mkdir -p $@
 
 $(DIST_GECKO64): | $(DIST_GECKO_DIR)
-	if [ -e "$(SRCDIR)/../gecko/$(GECKO64_MSI)" ]; then \
-		cp "$(SRCDIR)/../gecko/$(GECKO64_MSI)" "$@"; \
+	if [ -e "/usr/share/wine/gecko/$(GECKO64_MSI)" ]; then \
+		cp "/usr/share/wine/gecko/$(GECKO64_MSI)" "$@"; \
 	else \
 		mkdir -p $(SRCDIR)/contrib/; \
 		if [ ! -e "$(SRCDIR)/contrib/$(GECKO64_MSI)" ]; then \
@@ -298,8 +299,8 @@ $(DIST_GECKO64): | $(DIST_GECKO_DIR)
 	fi
 
 $(DIST_GECKO32): | $(DIST_GECKO_DIR)
-	if [ -e "$(SRCDIR)/../gecko/$(GECKO32_MSI)" ]; then \
-		cp "$(SRCDIR)/../gecko/$(GECKO32_MSI)" "$@"; \
+	if [ -e "/usr/share/wine/gecko/$(GECKO32_MSI)" ]; then \
+		cp "/usr/share/wine/gecko/$(GECKO32_MSI)" "$@"; \
 	else \
 		mkdir -p $(SRCDIR)/contrib/; \
 		if [ ! -e "$(SRCDIR)/contrib/$(GECKO32_MSI)" ]; then \
@@ -318,6 +319,7 @@ $(DIST_FONTS): fonts
 ALL_TARGETS += dist
 GOAL_TARGETS += dist
 
+# TODO font linking
 # Only drag in WINE_OUT if they need to be built at all, otherwise this doesn't imply a rebuild of wine.  If wine is in
 # the explicit targets, specify that this should occur after.
 dist: $(DIST_TARGETS) | $(WINE_OUT) $(filter $(MAKECMDGOALS),wine64 wine32 wine) $(DST_DIR)
@@ -462,6 +464,8 @@ endif # ifeq ($(WITH_FFMPEG),1)
 ## FAudio
 ##
 
+ifeq ($(WITH_FAUDIO),1)
+
 FAUDIO_CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release -DFORCE_ENABLE_DEBUGCONFIGURATION=ON -DLOG_ASSERTIONS=ON -DCMAKE_INSTALL_LIBDIR="lib" -DXNASONG=OFF
 ifeq ($(WITH_FFMPEG),1)
 FAUDIO_CMAKE_FLAGS += -DFFMPEG=ON
@@ -509,11 +513,13 @@ faudio64: $(FAUDIO_CONFIGURE_FILES64)
 	mkdir -p $(DST_DIR)/lib64
 	cp -L $(TOOLS_DIR64)/lib/libFAudio* $(DST_DIR)/lib64/
 	[ x"$(STRIP)" = x ] || $(STRIP) $(DST_DIR)/lib64/libFAudio.so
+endif # ifeq ($(WITH_FAUDIO),1)
 
 ##
 ## lsteamclient
 ##
 
+ifneq ($(WITH_LSTEAMCLIENT),0)
 # The source directory for lsteamclient is a synthetic symlink clone of the source directory, because we need to run
 # winemaker in tree and it can stomp itself in parallel builds.
 $(LSTEAMCLIENT64)/.created: $(LSTEAMCLIENT) $(MAKEFILE_DEP)
@@ -544,10 +550,11 @@ $(LSTEAMCLIENT_CONFIGURE_FILES64): $(LSTEAMCLIENT64) $(MAKEFILE_DEP) | $(LSTEAMC
 			-DSTEAM_API_EXPORTS \
 			-Dprivate=public -Dprotected=public \
 			-I"../$(TOOLS_DIR64)"/include/ \
-			-I"../$(TOOLS_DIR64)"/include/wine/ \
-			-I"../$(TOOLS_DIR64)"/include/wine/windows/ \
+			-I"../$(TOOLS_DIR64)"/include/wine-proton/ \
+			-I"../$(TOOLS_DIR64)"/include/wine-proton/windows/ \
 			-L"../$(TOOLS_DIR64)"/lib64/ \
-			-L"../$(TOOLS_DIR64)"/lib64/wine/ \
+			-L"../$(TOOLS_DIR64)"/lib64/wine-proton-9999/ \
+			-L"../$(TOOLS_DIR64)"/lib64/wine-proton-9999/wine \
 			--dll ../$(LSTEAMCLIENT64) && \
 		cp ../$(LSTEAMCLIENT64)/Makefile . && \
 		echo >> ./Makefile 'SRCDIR := ../$(LSTEAMCLIENT64)' && \
@@ -562,10 +569,11 @@ $(LSTEAMCLIENT_CONFIGURE_FILES32): $(LSTEAMCLIENT32) $(MAKEFILE_DEP) | $(LSTEAMC
 			-DSTEAM_API_EXPORTS \
 			-Dprivate=public -Dprotected=public \
 			-I"../$(TOOLS_DIR32)"/include/ \
-			-I"../$(TOOLS_DIR32)"/include/wine/ \
-			-I"../$(TOOLS_DIR32)"/include/wine/windows/ \
-			-L"../$(TOOLS_DIR32)"/lib/ \
-			-L"../$(TOOLS_DIR32)"/lib/wine/ \
+			-I"../$(TOOLS_DIR32)"/include/wine-proton/ \
+			-I"../$(TOOLS_DIR32)"/include/wine-proton/windows/ \
+			-L"../$(TOOLS_DIR32)"/lib32/ \
+			-L"../$(TOOLS_DIR32)"/lib32/wine-proton-9999/ \
+			-L"../$(TOOLS_DIR32)"/lib32/wine-proton-9999/wine \
 			--dll ../$(LSTEAMCLIENT32) && \
 		cp ../$(LSTEAMCLIENT32)/Makefile . && \
 		echo >> ./Makefile 'SRCDIR := ../$(LSTEAMCLIENT32)' && \
@@ -603,11 +611,13 @@ lsteamclient32: $(LSTEAMCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filte
 	[ x"$(STRIP)" = x ] || $(STRIP) $(LSTEAMCLIENT_OBJ32)/lsteamclient.dll.so
 	mkdir -pv $(DST_DIR)/lib/wine/
 	cp -a $(LSTEAMCLIENT_OBJ32)/lsteamclient.dll.so $(DST_DIR)/lib/wine/
+endif # ifneq ($(WITH_LSTEAMCLIENT),0)
 
 ##
 ## wine
 ##
 
+ifeq ($(WINE_STEAM),1)
 ## Create & configure object directory for wine
 
 WINE_CONFIGURE_FILES32 := $(WINE_OBJ32)/Makefile
@@ -703,11 +713,13 @@ wine32-intermediate: $(WINE_CONFIGURE_FILES32)
 	cp -a $(WINE_DST32)/lib $(DST_DIR)/
 	cp -a $(WINE_DST32)/bin/wine $(DST_DIR)/bin/
 	cp -a $(WINE_DST32)/bin/wine-preloader $(DST_DIR)/bin/
+endif # ifeq ($(WINE_STEAM),1)
 
 ##
 ## vrclient
 ##
 
+ifneq ($(WITH_VRCLIENT),0)
 ## Create & configure object directory for vrclient
 
 VRCLIENT_CONFIGURE_FILES32 := $(VRCLIENT_OBJ32)/Makefile
@@ -729,11 +741,12 @@ $(VRCLIENT_CONFIGURE_FILES64): $(MAKEFILE_DEP) $(VRCLIENT) $(VRCLIENT)/vrclient_
 		$(WINEMAKER) --nosource-fix --nolower-include --nodlls --nomsvcrt \
 			--nosource-fix --nolower-include --nodlls --nomsvcrt \
 			-I"$(abspath $(TOOLS_DIR64))"/include/ \
-			-I"$(abspath $(TOOLS_DIR64))"/include/wine/ \
-			-I"$(abspath $(TOOLS_DIR64))"/include/wine/windows/ \
+			-I"$(abspath $(TOOLS_DIR64))"/include/wine-proton/ \
+			-I"$(abspath $(TOOLS_DIR64))"/include/wine-proton/windows/ \
 			-I"$(abspath $(VRCLIENT))" \
 			-L"$(abspath $(TOOLS_DIR64))"/lib64/ \
-			-L"$(abspath $(TOOLS_DIR64))"/lib64/wine/ \
+			-L"$(abspath $(TOOLS_DIR64))"/lib64/wine-proton-9999/ \
+			-L"$(abspath $(TOOLS_DIR64))"/lib64/wine-proton-9999/wine/ \
 			--dll vrclient_x64 && \
 		cp ./vrclient_x64/Makefile $(abspath $(dir $@)) && \
 		echo >> $(abspath $(dir $@))/Makefile 'SRCDIR := ../$(VRCLIENT)/vrclient_x64' && \
@@ -746,11 +759,12 @@ $(VRCLIENT_CONFIGURE_FILES32): $(MAKEFILE_DEP) $(VRCLIENT32) | $(VRCLIENT_OBJ32)
 	$(WINEMAKER) --nosource-fix --nolower-include --nodlls --nomsvcrt \
 		--wine32 \
 		-I"$(abspath $(TOOLS_DIR32))"/include/ \
-		-I"$(abspath $(TOOLS_DIR32))"/include/wine/ \
-		-I"$(abspath $(TOOLS_DIR32))"/include/wine/windows/ \
+		-I"$(abspath $(TOOLS_DIR32))"/include/wine-proton/ \
+		-I"$(abspath $(TOOLS_DIR32))"/include/wine-proton/windows/ \
 		-I"$(abspath $(VRCLIENT))" \
-		-L"$(abspath $(TOOLS_DIR32))"/lib/ \
-		-L"$(abspath $(TOOLS_DIR32))"/lib/wine/ \
+		-L"$(abspath $(TOOLS_DIR32))"/lib32/ \
+		-L"$(abspath $(TOOLS_DIR32))"/lib32/wine-proton-9999/ \
+		-L"$(abspath $(TOOLS_DIR32))"/lib32/wine-proton-9999/wine/ \
 		--dll $(VRCLIENT32)/vrclient && \
 	cp $(VRCLIENT32)/vrclient/Makefile $(dir $@) && \
 	echo >> $(dir $@)/Makefile 'SRCDIR := ../$(VRCLIENT32)/vrclient' && \
@@ -797,6 +811,7 @@ vrclient32: $(VRCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filter $(MAKE
 		mkdir -pv ../$(DST_DIR)/lib/wine/fakedlls && \
 		cp -a ../$(VRCLIENT_OBJ32)/vrclient.dll.so ../$(DST_DIR)/lib/wine/ && \
 		cp -a ../$(VRCLIENT_OBJ32)/vrclient.dll.fake ../$(DST_DIR)/lib/wine/fakedlls/vrclient.dll
+endif # ifneq ($(WITH_VRCLIENT),0)
 
 ##
 ## cmake -- necessary for FAudio, not part of steam runtime
@@ -804,6 +819,7 @@ vrclient32: $(VRCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filter $(MAKE
 
 # TODO Don't bother with this in native mode
 
+ifeq ($(CMAKE_STEAM),1)
 ## Create & configure object directory for cmake
 
 CMAKE_CONFIGURE_FILES32 := $(CMAKE_OBJ32)/Makefile
@@ -856,6 +872,7 @@ cmake32-intermediate: $(CMAKE_CONFIGURE_FILES32) $(filter $(MAKECMDGOALS),cmake3
 	+$(MAKE) -C $(CMAKE_OBJ32)
 	+$(MAKE) -C $(CMAKE_OBJ32) install
 	touch $(CMAKE_BIN32)
+endif # ifeq ($(CMAKE_STEAM),1)
 
 ##
 ## dxvk

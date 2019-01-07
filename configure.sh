@@ -103,6 +103,11 @@ function configure() {
       echo "WITH_FFMPEG := 1"
     fi
 
+    # dxvk?
+    if ! [[ -n $arg_dxvk ]]; then
+      echo "NO_DXVK := 1"
+    fi
+
     # SteamRT
     echo "STEAMRT64_MODE  := $(escape_for_make "$steamrt64_type")"
     echo "STEAMRT64_IMAGE := $(escape_for_make "$steamrt64_name")"
@@ -126,6 +131,7 @@ arg_steamrt32=""
 arg_steamrt64=""
 arg_no_steamrt=""
 arg_ffmpeg=""
+arg_dxvk=""
 arg_build_name=""
 arg_help=""
 invalid_args=""
@@ -165,6 +171,8 @@ function parse_args() {
       val_used=1
     elif [[ $arg = --with-ffmpeg ]]; then
       arg_ffmpeg=1
+    elif [[ $arg = --with-dxvk ]]; then
+      arg_dxvk=1
     elif [[ $arg = --steam-runtime32 ]]; then
       val_used=1
       arg_steamrt32="$val"
