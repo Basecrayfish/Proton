@@ -340,14 +340,14 @@ deploy: | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
 install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
-	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-install
-	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-install
-	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-install
-	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-install
-	cat "$(SRC_DIR)"/build/steam-proton-install-base.sh >> "$(DEPLOY_DIR)"/steam-proton-install
-	mkdir /usr/share/steam-proton
-	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz /usr/share/steam-proton 
-	cp "$(DEPLOY_DIR)"/steam-proton-install /usr/bin
+	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-manager
+	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-manager
+	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-manager
+	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-manager
+	cat "$(SRC_DIR)"build/steam-proton-manager-base.sh >> "$(DEPLOY_DIR)"/steam-proton-manager
+	mkdir "$(DISTDIR)"/usr/share/steam-proton
+	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DISTDIR)"/usr/share/steam-proton 
+	cp "$(DEPLOY_DIR)"/steam-proton-install "$(DISTDIR)"/usr/bin
 
 ##
 ## ffmpeg
