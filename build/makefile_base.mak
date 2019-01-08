@@ -346,8 +346,8 @@ install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-manager
 	cat "$(SRC_DIR)"build/steam-proton-manager-base.sh >> "$(DEPLOY_DIR)"/steam-proton-manager
 	mkdir "$(DISTDIR)"/usr/share/steam-proton
-	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DISTDIR)"/usr/share/steam-proton 
-	cp "$(DEPLOY_DIR)"/steam-proton-install "$(DISTDIR)"/usr/bin
+	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DESTDIR)"/usr/share/steam-proton 
+	cp "$(DEPLOY_DIR)"/steam-proton-install "$(DESTDIR)"/usr/bin
 
 ##
 ## ffmpeg
