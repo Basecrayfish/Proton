@@ -340,7 +340,6 @@ deploy: | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
 install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
-	deploy
 	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-install
 	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-install
 	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-install
