@@ -319,7 +319,6 @@ $(DIST_FONTS): fonts
 ALL_TARGETS += dist
 GOAL_TARGETS += dist
 
-# TODO font linking
 # Only drag in WINE_OUT if they need to be built at all, otherwise this doesn't imply a rebuild of wine.  If wine is in
 # the explicit targets, specify that this should occur after.
 dist: $(DIST_TARGETS) | $(WINE_OUT) $(filter $(MAKECMDGOALS),wine64 wine32 wine) $(DST_DIR)
@@ -334,13 +333,13 @@ dist: $(DIST_TARGETS) | $(WINE_OUT) $(filter $(MAKECMDGOALS),wine64 wine32 wine)
 #The use of "times" here is for compatibility with programs that require that exact string. This link does not point to Times New Roman.
 #The use of "cour" here is for compatibility with programs that require that exact string. This link does not point to Courier New.
 
-deploy: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
+deploy: | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	mkdir -p $(DEPLOY_DIR) && \
 	cp -a $(DEPLOY_COPY_TARGETS) $(DEPLOY_DIR) && \
 	tar -C $(DST_DIR) -c . | gzip -c -1 > $(DEPLOY_DIR)/proton_dist.tar.gz
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
-install: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
+install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	deploy
 	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-install
 	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-install
