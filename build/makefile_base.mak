@@ -341,12 +341,15 @@ deploy: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
 install: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
-	if [ ! -d $(STEAM_DIR) ]; then echo >&2 "!! "$(STEAM_DIR)" does not exist, cannot install"; return 1; fi
-	mkdir -p $(STEAM_DIR)/compatibilitytools.d/$(BUILD_NAME)
-	cp -a $(DST_BASE)/* $(STEAM_DIR)/compatibilitytools.d/$(BUILD_NAME)
-	@echo "Installed Proton to "$(STEAM_DIR)/compatibilitytools.d/$(BUILD_NAME)
-	@echo "You may need to restart Steam to select this tool"
-
+	deploy
+	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-install
+	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-install
+	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-install
+	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-install
+	cat "$(SRC_DIR)"/build/steam-proton-install-base.sh >> "$(DEPLOY_DIR)"/steam-proton-install
+	mkdir /usr/share/steam-proton
+	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz /usr/share/steam-proton 
+	cp "$(DEPLOY_DIR)"/steam-proton-install /usr/bin
 
 ##
 ## ffmpeg
