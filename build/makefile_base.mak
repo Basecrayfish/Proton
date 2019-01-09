@@ -14,7 +14,7 @@ export
 default $(MAKECMDGOALS): nested_make
 
 nested_make:
-	+$(MAKE) $(MAKECMDGOALS) -f $(firstword $(MAKEFILE_LIST)) NO_NESTED_MAKE=1
+	+$(MAKE) $(MAKECMDGOALS) -f $(firstword $(MAKEFILE_LIST)) NO_NESTED_MAKE=1 DESTDIR="$(DESTDIR)"
 
 else # (Rest of the file is the else)
 
@@ -345,7 +345,7 @@ install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-manager
 	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-manager
 	cat "$(SRC_DIR)"build/steam-proton-manager-base.sh >> "$(DEPLOY_DIR)"/steam-proton-manager
-	mkdir "$(DISTDIR)"/usr/share/steam-proton
+	mkdir "$(DESTDIR)"/usr/share/steam-proton
 	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DESTDIR)"/usr/share/steam-proton 
 	cp "$(DEPLOY_DIR)"/steam-proton-install "$(DESTDIR)"/usr/bin
 
