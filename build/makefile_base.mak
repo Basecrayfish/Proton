@@ -347,6 +347,7 @@ install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	cat "$(SRC_DIR)"build/steam-proton-manager-base.sh >> "$(DEPLOY_DIR)"/steam-proton-manager
 	mkdir -p "$(DESTDIR)"/usr/share/steam-proton
 	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DESTDIR)"/usr/share/steam-proton/
+	mkdir -p "$(DESTDIR)"/usr/bin/
 	cp "$(DEPLOY_DIR)"/steam-proton-manager "$(DESTDIR)"/usr/bin/
 
 ##
