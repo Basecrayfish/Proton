@@ -257,8 +257,7 @@ DIST_GECKO64 := $(DIST_GECKO_DIR)/$(GECKO64_MSI)
 DIST_FONTS := $(DST_DIR)/share/fonts
 
 DIST_TARGETS := $(DIST_COPY_TARGETS) $(DIST_VERSION) $(DIST_OVR32) $(DIST_OVR64) \
-                $(DIST_GECKO32) $(DIST_GECKO64) $(DIST_COMPAT_MANIFEST) $(DIST_LICENSE) \
-                $(DIST_FONTS)
+                $(DIST_COMPAT_MANIFEST) $(DIST_LICENSE)
 
 DEPLOY_COPY_TARGETS := $(DIST_COPY_TARGETS) $(DIST_VERSION) $(DIST_LICENSE)
 
@@ -454,17 +453,12 @@ endif # ifeq ($(WITH_FFMPEG),1)
 ## FAudio
 ##
 
-ifeq ($(WITH_FAUDIO),1)
-
 FAUDIO_CMAKE_FLAGS = -DCMAKE_BUILD_TYPE=Release -DFORCE_ENABLE_DEBUGCONFIGURATION=ON -DLOG_ASSERTIONS=ON -DCMAKE_INSTALL_LIBDIR="lib" -DXNASONG=OFF
 ifeq ($(WITH_FFMPEG),1)
 FAUDIO_CMAKE_FLAGS += -DFFMPEG=ON
 endif # ifeq ($(WITH_FFMPEG),1)
 
 FAUDIO_TARGETS = faudio faudio32 faudio64
-
-ALL_TARGETS += $(FAUDIO_TARGETS)
-GOAL_TARGETS_LIBS += faudio
 
 .PHONY: faudio faudio32 faudio64
 
@@ -503,13 +497,11 @@ faudio64: $(FAUDIO_CONFIGURE_FILES64)
 	mkdir -p $(DST_DIR)/lib64
 	cp -L $(TOOLS_DIR64)/lib/libFAudio* $(DST_DIR)/lib64/
 	[ x"$(STRIP)" = x ] || $(STRIP) $(DST_DIR)/lib64/libFAudio.so
-endif # ifeq ($(WITH_FAUDIO),1)
 
 ##
 ## lsteamclient
 ##
 
-ifneq ($(WITH_LSTEAMCLIENT),0)
 # The source directory for lsteamclient is a synthetic symlink clone of the source directory, because we need to run
 # winemaker in tree and it can stomp itself in parallel builds.
 $(LSTEAMCLIENT64)/.created: $(LSTEAMCLIENT) $(MAKEFILE_DEP)
@@ -601,13 +593,11 @@ lsteamclient32: $(LSTEAMCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filte
 	[ x"$(STRIP)" = x ] || $(STRIP) $(LSTEAMCLIENT_OBJ32)/lsteamclient.dll.so
 	mkdir -pv $(DST_DIR)/lib/wine/
 	cp -a $(LSTEAMCLIENT_OBJ32)/lsteamclient.dll.so $(DST_DIR)/lib/wine/
-endif # ifneq ($(WITH_LSTEAMCLIENT),0)
 
 ##
 ## wine
 ##
 
-ifeq ($(WINE_STEAM),1)
 ## Create & configure object directory for wine
 
 WINE_CONFIGURE_FILES32 := $(WINE_OBJ32)/Makefile
@@ -662,9 +652,6 @@ $(WINE_CONFIGURE_FILES32): $(MAKEFILE_DEP) | $(WINE_OBJ32) $(WINE_ORDER_DEPS32)
 ## wine goals
 WINE_TARGETS = wine wine_configure wine32 wine64 wine_configure32 wine_configure64
 
-ALL_TARGETS += $(WINE_TARGETS)
-GOAL_TARGETS += wine
-
 .PHONY: $(WINE_TARGETS)
 
 wine_configure: $(WINE_CONFIGURE_FILES32) $(WINE_CONFIGURE_FILES64)
@@ -703,13 +690,11 @@ wine32-intermediate: $(WINE_CONFIGURE_FILES32)
 	cp -a $(WINE_DST32)/lib $(DST_DIR)/
 	cp -a $(WINE_DST32)/bin/wine $(DST_DIR)/bin/
 	cp -a $(WINE_DST32)/bin/wine-preloader $(DST_DIR)/bin/
-endif # ifeq ($(WINE_STEAM),1)
 
 ##
 ## vrclient
 ##
 
-ifneq ($(WITH_VRCLIENT),0)
 ## Create & configure object directory for vrclient
 
 VRCLIENT_CONFIGURE_FILES32 := $(VRCLIENT_OBJ32)/Makefile
@@ -801,7 +786,6 @@ vrclient32: $(VRCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filter $(MAKE
 		mkdir -pv ../$(DST_DIR)/lib/wine/fakedlls && \
 		cp -a ../$(VRCLIENT_OBJ32)/vrclient.dll.so ../$(DST_DIR)/lib/wine/ && \
 		cp -a ../$(VRCLIENT_OBJ32)/vrclient.dll.fake ../$(DST_DIR)/lib/wine/fakedlls/vrclient.dll
-endif # ifneq ($(WITH_VRCLIENT),0)
 
 ##
 ## cmake -- necessary for FAudio, not part of steam runtime
@@ -809,7 +793,6 @@ endif # ifneq ($(WITH_VRCLIENT),0)
 
 # TODO Don't bother with this in native mode
 
-ifeq ($(CMAKE_STEAM),1)
 ## Create & configure object directory for cmake
 
 CMAKE_CONFIGURE_FILES32 := $(CMAKE_OBJ32)/Makefile
@@ -830,8 +813,6 @@ $(CMAKE_CONFIGURE_FILES32): $(MAKEFILE_DEP) | $(CMAKE_OBJ32)
 
 ## cmake goals
 CMAKE_TARGETS = cmake cmake_configure cmake32 cmake64 cmake_configure32 cmake_configure64
-
-ALL_TARGETS += $(CMAKE_TARGETS)
 
 .PHONY: $(CMAKE_TARGETS)
 
@@ -862,7 +843,6 @@ cmake32-intermediate: $(CMAKE_CONFIGURE_FILES32) $(filter $(MAKECMDGOALS),cmake3
 	+$(MAKE) -C $(CMAKE_OBJ32)
 	+$(MAKE) -C $(CMAKE_OBJ32) install
 	touch $(CMAKE_BIN32)
-endif # ifeq ($(CMAKE_STEAM),1)
 
 ##
 ## dxvk
@@ -948,9 +928,6 @@ endif # NO_DXVK
 # TODO Tests
 #  build_vrclient64_tests
 #  build_vrclient32_tests
-
-ALL_TARGETS += fonts
-GOAL_TARGETS += fonts
 
 .PHONY: fonts
 
