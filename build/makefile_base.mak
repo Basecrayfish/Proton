@@ -335,7 +335,7 @@ deploy: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
 
 install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	mkdir -p "$(DESTDIR)"/usr/share/steam-proton
-	cp "$(DEPLOY_DIR)"/ "$(DESTDIR)"/usr/share/steam-proton/"${BUILD_NAME}"
+	cp -r "$(DEPLOY_DIR)" "$(DESTDIR)"/usr/share/steam-proton/"${BUILD_NAME}"
 
 ##
 ## ffmpeg
