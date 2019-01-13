@@ -139,7 +139,7 @@ WINE32_AUTOCONF :=
 WINE64_AUTOCONF :=
 
 #OPTIMIZE_FLAGS := -O2 -march=nocona $(call cc-option,$(CC),-mtune=core-avx2,) -mfpmath=sse
-OPTIMIZE_FLAGS :=
+OPTIMIZE_FLAGS +=
 SANITY_FLAGS   := -fwrapv -fno-strict-aliasing
 COMMON_FLAGS   := $(OPTIMIZE_FLAGS) $(SANITY_FLAGS)
 
@@ -322,36 +322,20 @@ GOAL_TARGETS += dist
 # Only drag in WINE_OUT if they need to be built at all, otherwise this doesn't imply a rebuild of wine.  If wine is in
 # the explicit targets, specify that this should occur after.
 dist: $(DIST_TARGETS) | $(WINE_OUT) $(filter $(MAKECMDGOALS),wine64 wine32 wine) $(DST_DIR)
-	rm -rf $(abspath $(DIST_PREFIX)) && \
-	WINEPREFIX=$(abspath $(DIST_PREFIX)) wineboot-proton-9999 && \
-		WINEPREFIX=$(abspath $(DIST_PREFIX)) $(WINE_OUT_SERVER) -w && \
-		ln -s $(FONTLINKPATH)/LiberationSans-Regular.ttf $(abspath $(DIST_PREFIX))/drive_c/windows/Fonts/arial.ttf && \
-		ln -s $(FONTLINKPATH)/LiberationSans-Bold.ttf $(abspath $(DIST_PREFIX))/drive_c/windows/Fonts/arialbd.ttf && \
-		ln -s $(FONTLINKPATH)/LiberationSerif-Regular.ttf $(abspath $(DIST_PREFIX))/drive_c/windows/Fonts/times.ttf && \
-		ln -s $(FONTLINKPATH)/LiberationMono-Regular.ttf $(abspath $(DIST_PREFIX))/drive_c/windows/Fonts/cour.ttf && \
-		WINEPREFIX=$(abspath $(DIST_PREFIX)) /usr/lib32/dxvk/bin/setup_dxvk.sh && \
-		WINEPREFIX=$(abspath $(DIST_PREFIX)) /usr/lib64/dxvk/bin/setup_dxvk.sh
+	rm -rf $(abspath $(DIST_PREFIX))
 #The use of "arial" here is for compatibility with programs that require that exact string. These links do not point to Arial.
 #The use of "times" here is for compatibility with programs that require that exact string. This link does not point to Times New Roman.
 #The use of "cour" here is for compatibility with programs that require that exact string. This link does not point to Courier New.
 
-deploy: | $(filter-out dist deploy install,$(MAKECMDGOALS))
+deploy: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	mkdir -p $(DEPLOY_DIR) && \
 	cp -a $(DEPLOY_COPY_TARGETS) $(DEPLOY_DIR) && \
 	tar -C $(DST_DIR) -c . | gzip -c -1 > $(DEPLOY_DIR)/proton_dist.tar.gz
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
-install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
-	echo "#!/bin/bash" >> "$(DEPLOY_DIR)"/steam-proton-manager
-	echo "STEAM_DIR=$(STEAM_DIR)" >> "$(DEPLOY_DIR)"/steam-proton-manager
-	echo "BUILD_NAME=$(BUILD_NAME)" >> "$(DEPLOY_DIR)"/steam-proton-manager
-	echo "SYSTEM_DEPLOY_DIR"= /usr/share/steam-proton >> "$(DEPLOY_DIR)"/steam-proton-manager
-	cat "$(SRC_DIR)"build/steam-proton-manager-base.sh >> "$(DEPLOY_DIR)"/steam-proton-manager
+install: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	mkdir -p "$(DESTDIR)"/usr/share/steam-proton
-	cp "$(DEPLOY_DIR)"/proton_dist.tar.gz "$(DESTDIR)"/usr/share/steam-proton/
-	mkdir -p "$(DESTDIR)"/usr/bin/
-	cp "$(DEPLOY_DIR)"/steam-proton-manager "$(DESTDIR)"/usr/bin/
-	chmod +x "$(DESTDIR)"/usr/bin/steam-proton-manager
+	cp "$(DEPLOY_DIR)"/ "$(DESTDIR)"/usr/share/steam-proton/"${BUILD_NAME}"
 
 ##
 ## ffmpeg
