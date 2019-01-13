@@ -286,8 +286,8 @@ $(DIST_GECKO_DIR):
 	mkdir -p $@
 
 $(DIST_GECKO64): | $(DIST_GECKO_DIR)
-	if [ -e "/usr/share/wine/gecko/$(GECKO64_MSI)" ]; then \
-		cp "/usr/share/wine/gecko/$(GECKO64_MSI)" "$@"; \
+	if [ -e "$(SRCDIR)/../gecko/$(GECKO64_MSI)" ]; then \
+		cp "$(SRCDIR)/../gecko/$(GECKO64_MSI)" "$@"; \
 	else \
 		mkdir -p $(SRCDIR)/contrib/; \
 		if [ ! -e "$(SRCDIR)/contrib/$(GECKO64_MSI)" ]; then \
@@ -298,8 +298,8 @@ $(DIST_GECKO64): | $(DIST_GECKO_DIR)
 	fi
 
 $(DIST_GECKO32): | $(DIST_GECKO_DIR)
-	if [ -e "/usr/share/wine/gecko/$(GECKO32_MSI)" ]; then \
-		cp "/usr/share/wine/gecko/$(GECKO32_MSI)" "$@"; \
+	if [ -e "$(SRCDIR)/../gecko/$(GECKO32_MSI)" ]; then \
+		cp "$(SRCDIR)/../gecko/$(GECKO32_MSI)" "$@"; \
 	else \
 		mkdir -p $(SRCDIR)/contrib/; \
 		if [ ! -e "$(SRCDIR)/contrib/$(GECKO32_MSI)" ]; then \
@@ -459,6 +459,7 @@ FAUDIO_CMAKE_FLAGS += -DFFMPEG=ON
 endif # ifeq ($(WITH_FFMPEG),1)
 
 FAUDIO_TARGETS = faudio faudio32 faudio64
+
 
 .PHONY: faudio faudio32 faudio64
 
@@ -651,6 +652,7 @@ $(WINE_CONFIGURE_FILES32): $(MAKEFILE_DEP) | $(WINE_OBJ32) $(WINE_ORDER_DEPS32)
 
 ## wine goals
 WINE_TARGETS = wine wine_configure wine32 wine64 wine_configure32 wine_configure64
+
 
 .PHONY: $(WINE_TARGETS)
 
