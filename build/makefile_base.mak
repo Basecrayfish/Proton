@@ -333,9 +333,10 @@ deploy: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
 	tar -C $(DST_DIR) -c . | gzip -c -1 > $(DEPLOY_DIR)/proton_dist.tar.gz
 	@echo "Created deployment tarball at "$(DEPLOY_DIR)"/proton_dist.tar.gz"
 
-install: deploy | $(filter-out dist deploy install,$(MAKECMDGOALS))
-	mkdir -p "$(DESTDIR)"/usr/share/steam-proton
-	cp -r "$(DEPLOY_DIR)" "$(DESTDIR)"/usr/share/steam-proton/"${BUILD_NAME}"
+install: dist | $(filter-out dist deploy install,$(MAKECMDGOALS))
+	mkdir -p "$(DESTDIR)"/usr/share/steam-proton/$(BUILD_NAME)
+	cp -a $(DST_BASE)/* $(DESTDIR)/usr/share/steam-proton/$(BUILD_NAME)/
+	@echo "Installed proton to "$(DESTDIR)"/usr/share/steam-proton/"$(BUILD_NAME)
 
 ##
 ## ffmpeg
