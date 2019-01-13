@@ -599,6 +599,7 @@ lsteamclient32: $(LSTEAMCLIENT_CONFIGURE_FILES32) | $(WINE_BUILDTOOLS32) $(filte
 ## wine
 ##
 
+ifeq ($(WINE_STEAM),1)
 ## Create & configure object directory for wine
 
 WINE_CONFIGURE_FILES32 := $(WINE_OBJ32)/Makefile
@@ -653,6 +654,8 @@ $(WINE_CONFIGURE_FILES32): $(MAKEFILE_DEP) | $(WINE_OBJ32) $(WINE_ORDER_DEPS32)
 ## wine goals
 WINE_TARGETS = wine wine_configure wine32 wine64 wine_configure32 wine_configure64
 
+ALL_TARGETS += $(WINE_TARGETS)
+GOAL_TARGETS += wine
 
 .PHONY: $(WINE_TARGETS)
 
@@ -692,6 +695,7 @@ wine32-intermediate: $(WINE_CONFIGURE_FILES32)
 	cp -a $(WINE_DST32)/lib $(DST_DIR)/
 	cp -a $(WINE_DST32)/bin/wine $(DST_DIR)/bin/
 	cp -a $(WINE_DST32)/bin/wine-preloader $(DST_DIR)/bin/
+endif # WINE_STEAM
 
 ##
 ## vrclient
